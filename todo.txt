@@ -1,0 +1,1 @@
+display -> beloteframe -> get_resized -> tester la boucle sans le "global tk_card"
