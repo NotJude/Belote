@@ -16,6 +16,27 @@ for i in range(4):
     for j in range(7,15):
         NDECK.append((i,j))
 
+VALEURS_ATOUT = {
+    7 : 0,
+    8 : 0,
+    9 : 14,
+    10 : 10,
+    11 : 21,
+    12 : 3,
+    13 : 4,
+    14 : 11
+}
+VALEURS_SANS = {
+    7 : 0,
+    8 : 0,
+    9 : 0,
+    10 : 10,
+    11 : 2,
+    12 : 3,
+    13 : 4,
+    14 : 11
+}
+
 
 
 #couleurs
