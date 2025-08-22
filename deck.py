@@ -3,9 +3,6 @@ from const import DECK
 
 class Deck:
     def __init__(self):
-        suits = ["clubs", "diamonds", "spades", "hearts"]
-        values = [i for i in range(2,15)]
-
         self.DECK = DECK.copy()
       
         self.current_deck = []

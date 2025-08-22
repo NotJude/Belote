@@ -1,1 +1,6 @@
 display -> beloteframe -> get_resized -> tester la boucle sans le "global tk_card"
+class bElotebutton
+les dimensions
+canvas ??
+
+- vidéo option boutons : https://www.youtube.com/watch?v=gpQDZ5CNY5w
