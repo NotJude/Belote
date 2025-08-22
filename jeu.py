@@ -1,6 +1,6 @@
 from joueurs import Joueur
 from random import randint
-from const import VALEURS_ATOUT, VALEURS_SANS
+from const import VALEURS_ATOUT, VALEURS_SANS, ORDRE_ATOUT, ORDRE_SANS
 from deck import Deck
 
 
@@ -47,14 +47,12 @@ class Jeu:
         self.pli.ajouter_carte(carte)
 
         if len(self.pli.table) == 4:
-            print("Il faudra changer de pli")
             n_pli = self.pli.n
             if n_pli == 8:
-                print("Le pli est fini")
                 self.est_fini()
             else:
                 gagnant = self.pli.joueur_leader
-                Pli(self, n_pli+1, gagnant)
+                self.pli = Pli(self, n_pli+1, gagnant)
     
     def est_fini(self):
         pass
@@ -77,14 +75,27 @@ class Pli:
             self.card_leader = carte
             self.premiere_couleur = carte[0]
         else:
-            if self.compare(self.card_leader, carte) == carte:
+            if self.compare_bis(self.card_leader, carte) == carte:
                 self.card_leader = carte
                 self.joueur_leader = (self.premier_joueur + len(self.table)-1)%4
 
         self.joueur_courant = (self.joueur_courant + 1) % 4
 
+    def compare_bis(self, maitre, candidat): # renvoie True si Émillien conserve son titre
+        at = self.jeu.atout
+        dmd = self.premiere_couleur
+        if candidat[0] == at:
+            if maitre[0] == at:
+                return ORDRE_ATOUT.index(maitre[1]) > ORDRE_ATOUT.index(candidat[1])
+            else: # maitre[0] == dmd
+                return False
+        elif candidat[0] == dmd and maitre[0] == dmd:
+            return ORDRE_SANS.index(maitre[1]) > ORDRE_SANS.index(candidat[1])
+        return True
+                
+
     def compare(self, c1, c2): # appelée seulement si la première carte à été jouée ou si c1 et c2 sont des atouts
-        atout = self.jeu.atout
+        atout = self.jeu.atout # grand remplacée par compare_bis ???
         if c1[0]==atout:
             if c2[0] != atout:
                 return c1
@@ -115,6 +126,7 @@ class Pli:
             return main
         else:
             nos_atouts, atouts_sup = self.filtrer_couleur(main, self.jeu.atout)
+            print("Joueur", self.joueur_courant, "Atouts de J_C", nos_atouts, "AS de JC", atouts_sup)
             if self.premiere_couleur==self.jeu.atout:
                 if len(atouts_sup) > 0: return atouts_sup
                 elif len(nos_atouts) > 0: return nos_atouts
@@ -130,7 +142,7 @@ class Pli:
         for card in main:
             if card[0] == couleur:
                 nos_atouts.append(card)
-            if self.compare(card, self.card_leader) == card:
+            if self.compare_bis(card, self.card_leader):
                 atouts_sup.append(card)
         return nos_atouts, atouts_sup
 
