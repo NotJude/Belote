@@ -29,7 +29,7 @@ class BeloteFrame(tk.Frame):
     def configure_on_card_click(self, on_card_click):
         self.on_card_click = on_card_click
 
-    def img_my(self, cards):
+    def img_my(self, cards, valides):
         self.n_of_current_imgs = len(cards)
         n = self.n_of_current_imgs
         taille = n*CARD_WIDTH + (n-1)*PAD_CARTES_MY
@@ -38,9 +38,12 @@ class BeloteFrame(tk.Frame):
         for i, card in enumerate(cards):
             x = x_min + i*(CARD_WIDTH + PAD_CARTES_MY)
             lb = CardDisplayer(self, card, x=x, y=MY_Y)
-            def helper(j):
-                return lambda event : self.on_card_click(j)
-            lb.bind("<Button-1>", helper(card))
+            if card in valides:
+                def helper(j):
+                    return lambda event : self.on_card_click(j)
+                lb.bind("<Button-1>", helper(card))
+            else:
+                lb.config(state="disabled")
             self.my_current_imgs[i] = lb
 
     def add_img_mid(self, card, n): #numéro du joueur
@@ -58,21 +61,15 @@ class BeloteFrame(tk.Frame):
             dick[card] = tk_card
         return dick
     
-    def destroy_all_images(self):
-        for e in self.my_current_imgs:
-            e.destroy()
-        self.my_current_imgs = [None]*8
-
-        for e in self.mid_current_imgs:
-            e.destroy()
-        self.mid_current_imgs = [None]*4
+    def destroy_hand(self):
+        for cd in self.my_current_imgs:
+            if cd != None:
+                cd.destroy()
+        self.my_current_imgs = [None] * 8
     
     def render_pli(self, first, table):
         for i in range(len(table)):
             self.add_img_mid(table[i], (first + i) % 4)
-
-    def only_playable(self):
-        pass # grise (DESACTIVATE) les cartes non valables
 
 
 

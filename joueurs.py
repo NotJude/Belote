@@ -10,8 +10,10 @@ class Joueur:
         self.ekip = n%2
         self.main = []
         self.bot = bot
-    
-    def joue(self, pli):
+
+    def action_de_bot(self, pli):
         possibles = pli.filtre_main(self.main)
         return choice(possibles)
 
+    def defausser(self, carte):
+        self.main.remove(carte)

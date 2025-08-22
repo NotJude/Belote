@@ -4,24 +4,8 @@ from random import randint
 
 class Partie:
     def __init__(self, frame):
-        self.jeu = Jeu(frame, 0)
+        self.jeu = Jeu(frame, 3)
 
-    def process_ua(self, ua):
-        """
-        if self.jeu.pli.joueur_courant != ua.sender:
-            print("pas à ton tour")
-            return # a joué quand c'est pas à son tour
-        """
-        
-        self.jeu.carte_jouee(ua.card)
-
-class Jeu:
-    def __init__(self, frame, init_dealer):
-        self.dealer = init_dealer
-        # animation pour sélectionner l'atout
-        self.atout = 0
-
-        # à mettre dans "Partie"
         l_joueurs = []
         j = Joueur(0, bot=False)
         l_joueurs.append(j)
@@ -29,6 +13,21 @@ class Jeu:
             j = Joueur(i, bot=True)
             l_joueurs.append(j)
         self.l_joueurs = l_joueurs
+
+    def process_ua(self, ua):
+        if self.jeu.pli.joueur_courant != ua.sender:
+            print("pas à ton tour")
+            return # a joué quand c'est pas à son tour
+        
+        self.l_joueurs[ua.sender].defausser(ua.card)
+        self.jeu.carte_jouee(ua.card)
+
+class Jeu:
+    def __init__(self, partie, init_dealer):
+        self.game = partie
+        self.dealer = init_dealer
+        # animation pour sélectionner l'atout
+        self.atout = 0
 
         self.pli = Pli(self, 1, (init_dealer + 1) % 4)
 
@@ -46,14 +45,10 @@ class Pli:
         self.n = n # numéro du pli : int \in {1, ..., 8}
         self.table = [] # Les cartes jetées sur la table (dans l'ordre chronologique)
 
-        self.l_joueurs = self.jeu.l_joueurs
-
     def ajouter_carte(self, carte):
         self.table.append(carte)
         self.joueur_courant = (self.joueur_courant + 1) % 4
 
-
-
     def filtre_main(self, main):
-        return #main_filtrée, cartes indisponibles grisées   
+        return main
     

@@ -10,8 +10,14 @@ WHO_AM_I = 0
 def send_ua(frame, game, ua):
     game.process_ua(ua)
 
+    frame.destroy_hand()
     pli = game.jeu.pli
+    valides = pli.filtre_main(game.l_joueurs[WHO_AM_I].main)
+    print(game.l_joueurs[WHO_AM_I].main)
+    frame.img_my(game.l_joueurs[WHO_AM_I].main, valides) # J'affiche mon jeu :D
+
     frame.render_pli(pli.premier_joueur, pli.table)
+
 
 def card_to_ua(card):
     return PlayCard(WHO_AM_I, card)
@@ -30,6 +36,7 @@ if __name__ == '__main__':
     # Ensutie la partie jeu
     game = Partie(frame)
     jeu = game.jeu
+    game.l_joueurs[WHO_AM_I].main = ['12_of_hearts', '13_of_spades', '14_of_hearts']
 
     # Puis on met les deux en communication
     frame.configure_on_card_click(lambda card : send_ua(frame, game, card_to_ua(card)))
@@ -38,6 +45,6 @@ if __name__ == '__main__':
 
 
 
-    frame.img_my(['12_of_hearts', '13_of_spades', '14_of_hearts'])
+    frame.img_my(['12_of_hearts', '13_of_spades', '14_of_hearts'], ['12_of_hearts', '13_of_spades', '14_of_hearts'])
 
     root.mainloop()
