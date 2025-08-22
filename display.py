@@ -1,8 +1,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 from const import *
-from jeu import Jeu
-
+from user_action import *
 
 
 class BeloteWindow(tk.Tk):
@@ -25,9 +24,10 @@ class BeloteFrame(tk.Frame):
         self.mid_current_imgs = [None]*4
         self.my_current_imgs = [None]*8
         self.n_of_current_imgs = 0
+        self.on_card_click = None
 
-        self.jeu = Jeu(self, 0)
-
+    def configure_on_card_click(self, on_card_click):
+        self.on_card_click = on_card_click
 
     def img_my(self, cards):
         self.n_of_current_imgs = len(cards)
@@ -36,13 +36,11 @@ class BeloteFrame(tk.Frame):
         x_min = WIN_WIDTH/2 - taille/2
         
         for i, card in enumerate(cards):
-            print(i)
             x = x_min + i*(CARD_WIDTH + PAD_CARTES_MY)
             lb = CardDisplayer(self, card, x=x, y=MY_Y)
             def helper(j):
-                return lambda event : self.jeu.carte_jouee(card, )
-                return lambda event: self.on_click_my_card(j, event)
-            lb.bind("<Button-1>", helper(i))
+                return lambda event : self.on_card_click(j)
+            lb.bind("<Button-1>", helper(card))
             self.my_current_imgs[i] = lb
 
     def add_img_mid(self, card, n): #numéro du joueur
@@ -68,9 +66,10 @@ class BeloteFrame(tk.Frame):
         for e in self.mid_current_imgs:
             e.destroy()
         self.mid_current_imgs = [None]*4
-
-    def on_click_my_card(self, i, event):
-        print("i :",i)
+    
+    def render_pli(self, first, table):
+        for i in range(len(table)):
+            self.add_img_mid(table[i], (first + i) % 4)
 
     def only_playable(self):
         pass # grise (DESACTIVATE) les cartes non valables

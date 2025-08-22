@@ -3,13 +3,20 @@ from random import randint
 
 
 class Partie:
-    def __init__(self):
-        pass
+    def __init__(self, frame):
+        self.jeu = Jeu(frame, 0)
 
+    def process_ua(self, ua):
+        """
+        if self.jeu.pli.joueur_courant != ua.sender:
+            print("pas à ton tour")
+            return # a joué quand c'est pas à son tour
+        """
+        
+        self.jeu.carte_jouee(ua.card)
 
 class Jeu:
     def __init__(self, frame, init_dealer):
-        
         self.dealer = init_dealer
         # animation pour sélectionner l'atout
         self.atout = 0
@@ -21,33 +28,29 @@ class Jeu:
         for i in range(1, 4):
             j = Joueur(i, bot=True)
             l_joueurs.append(j)
-        self.l_joureurs = l_joueurs
+        self.l_joueurs = l_joueurs
 
-        self.pli_courant = Pli(self, 1, (init_dealer + 1) % 4)
-    
-    def carte_jouee(self, carte, joueur):
-        qui_joue = self.pli_courant.joueur_courant
-        if joueur != qui_joue: # C'est ciao
-            return
+        self.pli = Pli(self, 1, (init_dealer + 1) % 4)
 
-        
+    def carte_jouee(self, carte):
+        self.pli.ajouter_carte(carte)
 
-
+        if len(self.pli.table) == 4:
+            print("Il faudra changer de pli")
 
 class Pli:
     def __init__(self, jeu, n, premier_joueur):
         self.jeu = jeu
+        self.premier_joueur = premier_joueur
         self.joueur_courant = premier_joueur
-        self.première_carte = None # couple (carte)
         self.n = n # numéro du pli : int \in {1, ..., 8}
-        self.gagnant = self.premier_joueur # actualisé à chaque fois que quelqu'un joue une carte,
-                         # à la fin du pli prend la valeur du gagnant (donc de celui
-                         #  qui joue le suivant)
-        self.carte_gagnante = None # Ca va être un couple
+        self.table = [] # Les cartes jetées sur la table (dans l'ordre chronologique)
+
         self.l_joueurs = self.jeu.l_joueurs
 
-    def single_card(self, i):
-        pass
+    def ajouter_carte(self, carte):
+        self.table.append(carte)
+        self.joueur_courant = (self.joueur_courant + 1) % 4
 
 
 
