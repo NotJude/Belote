@@ -1,20 +1,16 @@
-
-
-
 N = 1
 
 #deck      0          1          2         3
 SUITS = ['clubs', 'diamonds', 'spades', 'hearts']
 VALUES = [i for i in range(7, 15)]
-DECK = []
-for suit in SUITS:
-    for value in VALUES:
-        DECK.append(f'{value}_of_{suit}')
+# DECK = []
+
 
 NDECK = []
 for i in range(4):
     for j in range(7,15):
         NDECK.append((i,j))
+
 
 VALEURS_ATOUT = {
     7 : 0,
@@ -78,7 +74,7 @@ MID_3_Y = ada(MID_1_Y)
 
 MID_POS = [(MID_0_X, MID_0_Y), (MID_1_X, MID_1_Y), (MID_2_X, MID_2_Y), (MID_3_X, MID_3_Y)]
 
-
+SLEEPING_TIME = 0.3
 
 
 

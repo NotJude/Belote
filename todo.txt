@@ -4,3 +4,5 @@ les dimensions
 canvas ??
 
 - vidéo option boutons : https://www.youtube.com/watch?v=gpQDZ5CNY5w
+
+nettoyer : cartes  : str vs couple

@@ -1,11 +1,11 @@
 from joueurs import Joueur
 from random import randint
 from const import VALEURS_ATOUT, VALEURS_SANS
+from deck import Deck
 
 
 class Partie:
-    def __init__(self, frame):
-        self.jeu = Jeu(frame, 0)
+    def __init__(self):
 
         l_joueurs = []
         j = Joueur(0, bot=False)
@@ -14,6 +14,8 @@ class Partie:
             j = Joueur(i, bot=True)
             l_joueurs.append(j)
         self.l_joueurs = l_joueurs
+        self.jeu = Jeu(self, 3)
+
 
     def process_ua(self, ua):
         if self.jeu.pli.joueur_courant != ua.sender:
@@ -24,12 +26,19 @@ class Partie:
         self.jeu.carte_jouee(ua.card)
 
 class Jeu:
-    def __init__(self, frame, init_dealer):
+    def __init__(self, partie, init_dealer):
         self.dealer = init_dealer
         # animation pour sélectionner l'atout
         self.atout = 0
+        self.partie = partie
 
-        # à mettre dans "Partie"
+        self.deck = Deck()
+        distribution = self.deck.distribue()
+
+        self.l_joueurs = self.partie.l_joueurs
+        for i in range(4):
+            self.l_joueurs[i].main = distribution[i]
+
 
 
         self.pli = Pli(self, 1, (init_dealer + 1) % 4)
@@ -60,20 +69,18 @@ class Pli:
         self.n = n # numéro du pli : int \in {1, ..., 8}
         self.table = [] # Les cartes jetées sur la table (dans l'ordre chronologique)
 
-        self.l_joueurs = self.jeu.l_joueurs
         self.premiere_couleur = None
 
     def ajouter_carte(self, carte):
         self.table.append(carte)
         if len(self.table)==1:
-            card_leader = carte
+            self.card_leader = carte
             self.premiere_couleur = carte[0]
         else:
-            if self.compare(card_leader, carte) == carte:
-                card_leader = carte
+            if self.compare(self.card_leader, carte) == carte:
+                self.card_leader = carte
                 self.joueur_leader = (self.premier_joueur + len(self.table)-1)%4
 
-            
         self.joueur_courant = (self.joueur_courant + 1) % 4
 
     def compare(self, c1, c2): # appelée seulement si la première carte à été jouée ou si c1 et c2 sont des atouts
@@ -111,14 +118,14 @@ class Pli:
             if self.premiere_couleur==self.jeu.atout:
                 if len(atouts_sup) > 0: return atouts_sup
                 elif len(nos_atouts) > 0: return nos_atouts
-                else: return main          
+                else: return main
             else:
-                nos_coul, _ = self.filter_couleur(main, self.premiere_couleur)
+                nos_coul, _ = self.filtrer_couleur(main, self.premiere_couleur)
                 if len(nos_coul)>0: return nos_coul
-                elif self.joueur_leader.ekip != self.joueur_courant.ekip and len(nos_atouts)>0: return nos_atouts
+                elif self.joueur_leader%2 != self.joueur_courant%2 and len(nos_atouts)>0: return nos_atouts
                 else: return main
 
-    def filter_couleur(self, main, couleur):
+    def filtrer_couleur(self, main, couleur):
         nos_atouts, atouts_sup = [], []
         for card in main:
             if card[0] == couleur:

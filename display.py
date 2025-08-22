@@ -51,10 +51,11 @@ class BeloteFrame(tk.Frame):
         self.mid_current_imgs[n] = lb
 
     def get_resized(self):
-        deck = DECK.copy()
+        deck = NDECK.copy()
         dick = {}
         for card in deck:
-            card_image = Image.open(f"cards/{card}.png")
+            convert = str(card[1])+"_of_"+str(SUITS[card[0]])
+            card_image = Image.open(f"cards/{convert}.png")
             resized = card_image.resize(CARD_DIM)
             # global tk_card
             tk_card = ImageTk.PhotoImage(resized)
@@ -96,7 +97,7 @@ class CardDisplayer(tk.Label):
         self.place_card()
 
     def render(self):
-        image = self.parent.img_dict[f"{self.card}"]
+        image = self.parent.img_dict[self.card]
         self.config(image=image)
 
 
@@ -105,9 +106,9 @@ class CardDisplayer(tk.Label):
 if __name__ == '__main__':
 
     root = BeloteWindow()
-    leb = CardDisplayer(root.main_frame, "2_of_spades")
+    # leb = CardDisplayer(root.main_frame, "2_of_spades")
     
-    leb.place_with_coord(350, 50)
+    # leb.place_with_coord(350, 50)
 
 
     root.mainloop()
