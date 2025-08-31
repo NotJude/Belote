@@ -1,31 +1,29 @@
-import random
+
+from random import shuffle
+
 from const import NDECK
 
-class Deck:
+
+def compare(c1, c2, atout, demandee): # demandée est la couleur de la première carte du pli
+    pass
+
+
+class BeloteDeck:
     def __init__(self):
       
         self.current_deck = []
         self.free_refill()
+        self.shuffleD()
 
     def shuffleD(self):
-        random.shuffle(self.current_deck)
+        shuffle(self.current_deck)
 
-    def distribue(self):
+    def distribue(self): # plus tard : distribuer en 2-3 (ou 3-2 avec proba 1/2) puis vider le jeu
         self.shuffleD()
         assert(len(self.current_deck)==32)
-        cu = self.current_deck
+        cu = self.current_deck.copy()
+        # self.current_deck = []
         return cu[:8], cu[8:16], cu[16:24], cu[24:32]
-
-    def pick(self):
-        card = random.choice(self.current_deck)
-        self.current_deck.remove(card)
-        return card
-    
-    def pick_and_put_back(self):
-        return random.choice(self.current_deck) 
-
-    def empty_deck(self):
-        return len(self.current_deck)==0
-    
+   
     def free_refill(self):
         self.current_deck = NDECK.copy()

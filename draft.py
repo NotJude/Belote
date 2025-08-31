@@ -1,21 +1,29 @@
 from tkinter import *
-import random
-from PIL import Image, ImageTk
-from const import *
 
-root = Tk()
-root.geometry("900x500")
+win = Tk()
 
-def on_click(event, color):
-    print("clicked!", color)
+win.mainloop()
 
-j = Label(root,bg="green")
-j.place(x=150, y=50, width=50, height=50)
-j.bind("<Button-1>", lambda event: on_click(event, "green"))
+while True:
+    print("a")
 
-l = Label(root,bg="red")
-l.place(x=50, y=50, width=50, height=50)
-l.bind("<Button-1>", lambda event: on_click(event, "red"))
+"""
+    def configure_click_event(self, func):
+        pass
 
+    def load_images(self):
+        pass
 
-root.mainloop()
+    def card_place_and_render(self, card, x, y):
+        pass
+
+    def erase_all(self):
+        pass
+
+    def render_pli(self, table):
+        #place les images de la table au bon endroit
+        pass
+
+    def render_deck(self, deck):
+        pass
+"""

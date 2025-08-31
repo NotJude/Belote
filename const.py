@@ -1,4 +1,4 @@
-N = 1
+
 
 #deck      0          1          2         3
 SUITS = ['clubs', 'diamonds', 'spades', 'hearts']
@@ -22,6 +22,7 @@ VALEURS_ATOUT = {
     13 : 4,
     14 : 11
 }
+ORDRE_ATOUT = sorted(VALEURS_ATOUT.keys(), key=lambda x: VALEURS_ATOUT[x])
 VALEURS_SANS = {
     7 : 0,
     8 : 0,
@@ -32,13 +33,17 @@ VALEURS_SANS = {
     13 : 4,
     14 : 11
 }
+ORDRE_SANS = sorted(VALEURS_SANS.keys(), key=lambda x: VALEURS_SANS[x])
 
 
+"""graphique"""
 
 #couleurs
 BG = "green"
 
 #dimensions
+N = 1
+
 def ada(n):
     return round(n*N)
 

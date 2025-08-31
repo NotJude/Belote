@@ -1,19 +1,36 @@
-from tkinter import *
-# from jeu import Pli
+
 from random import choice
 
-# Deux équipes 0 (N) et 1 (E)
+class Ekip:
+    def __init__(self, n):
+        self.joueurs = None
+        self.points = 0
+        self.n = n
+
+    def init_joueurs(self, j1, j2):
+        self.joueurs = [j1, j2]
+
+
 
 class Joueur:
-    def __init__(self, n, bot=True):
-        self.n = n # 0 (J), 1, 2, 3
-        self.ekip = n%2
-        self.main = []
-        self.bot = bot
+    def __init__(self, n, n_equipe, is_nobod):
+        self.n = n # identifiant unique
+        self.n_equipe = n_equipe 
+        self.is_bot = is_nobod
+        """éventuellement rajouter un attribu 'équipe'"""
+        assert(self.n%2 == self.n_equipe)
 
-    def action_de_bot(self, pli):
-        possibles = pli.filtre_main(self.main)
-        return choice(possibles)
+        # Propre à un jeu
+        self.main = None
 
-    def defausser(self, carte):
-        self.main.remove(carte)
+        
+
+    def init_main(self, cards):
+        self.main = cards
+
+    def bot_play(self, jouables):
+        assert(self.is_bot)
+
+        c = choice(jouables)
+
+        # envoyer la carte
