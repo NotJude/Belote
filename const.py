@@ -5,6 +5,8 @@ SUITS = ['clubs', 'diamonds', 'spades', 'hearts']
 VALUES = [i for i in range(7, 15)]
 # DECK = []
 
+# TRAD_SUITS
+
 
 NDECK = []
 for i in range(4):
@@ -78,6 +80,9 @@ MID_3_X = ada(WIN_WIDTH/2 + CARD_WIDTH/2 + PAD_CARTES_MID_HORIZ)
 MID_3_Y = ada(MID_1_Y)
 
 MID_POS = [(MID_0_X, MID_0_Y), (MID_1_X, MID_1_Y), (MID_2_X, MID_2_Y), (MID_3_X, MID_3_Y)]
+
+SINGLE_X = ada(MID_0_X)
+SINGLE_Y = ada(MID_1_Y)
 
 SLEEPING_TIME = 0.3
 

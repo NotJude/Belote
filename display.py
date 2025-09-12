@@ -19,40 +19,45 @@ class BeloteWindow:
 
         self.img_dict = self.get_resized_big()
 
-        self.middle = None 
-        self.clear_middle()
-
-        self.my_main = None
-        self.clear_my_main()
+        # labelzzz
+        self.middle = [None]*4 # une liste suffit ici (pour l'instant)
+        self.my_main = {} # à une carte (tuple) on associe le label
+        self.single = None
 
         self.on_card_click = None
-        self.ready_for_next_pli_click = None
+        # self.ready_for_next_pli_click = None
+
+        #Newww (10/09)
+        self.at_butts = []
+
+        self.at_label = tk.Label(self.main_frame, bg=BG)
+        self.at_label.place(x=0, y=0)
+
+
+
+
+
 
     def configure_on_card_click(self, on_card_click):
         self.on_card_click = on_card_click
 
-    def configure_ready_pli_click(self, ready_on_click):
-        self.ready_for_next_pli_click = ready_on_click
+    def configure_waiter_click(self, waiter_click_function):
+        self.waiter_click = waiter_click_function
 
-    def clear_middle(self):
-        self.middle = [None]*4
+    def configure_at_click(self, at_click_function):
+        self.at_click = at_click_function
 
-    def clear_my_main(self):
-        self.my_main = []
+
+
+
 
     def taille_main(self):
         return len(self.my_main)
     
-    def render_carte(self, card, x, y): # !!!!!!!! à l'ordre entre place et config
-        # renvoie le label lui meme, ne pas oublier d'ajouter la valeur de retour (Label lbl) à la liste correspondante (self.my_main ou self.middle)
-        lbl = tk.Label(self.main_frame) #bg = BG
-        lbl.place(x=x, y=y, width=CARD_WIDTH, height=CARD_HEIGHT)
-        image = self.img_dict[card]
-        lbl.config(image = image)
-        return lbl
+
 
     # juju l'tueur
-    def get_resized_big(self):
+    def get_resized_big(self): # pas vraiment une fonction : on peut la laisser dans le __init__
         deck = NDECK.copy()
         dick = {}
         for card in deck:
@@ -64,17 +69,17 @@ class BeloteWindow:
             dick[card] = tk_card
         return dick
     
-    def display_my_hand(self, cards, valides=None): 
-        """
-        fonction à appeler après que l'on a joué
-        - effacer les cartes de my
-        - les remettre avec un bind désactivé pour toute carte.
-        - afficher la carte middle: T.
-        """
-        if self.my_main != None:
-            for c_lbl in self.my_main:
-                c_lbl.destroy()
-            self.clear_my_main()
+    # ATOMIC
+    def render_carte(self, card, x, y): 
+        lbl = tk.Label(self.main_frame) #bg = BG
+        lbl.place(x=x, y=y, width=CARD_WIDTH, height=CARD_HEIGHT)
+        image = self.img_dict[card]
+        lbl.config(image = image)
+        return lbl
+
+
+
+    def display_my_hand(self, cards):
 
         n = len(cards)
         taille = n*CARD_WIDTH + (n-1)*PAD_CARTES_MY
@@ -83,55 +88,140 @@ class BeloteWindow:
         for i, card in enumerate(cards):
             x = x_min + i*(CARD_WIDTH + PAD_CARTES_MY)
             c_lbl = self.render_carte(card, x=x, y=MY_Y)
-            def helper(j):
-                return lambda event: self.on_card_click(j)
-            c_lbl.bind("<Button-1>", helper(card))
-            if valides == None:
-                c_lbl.config(state="disabled")
-            elif card not in valides:
-                c_lbl.config(state="disabled")
-            self.my_main.append(c_lbl)
+            self.my_main[card] = c_lbl
 
-    def abt_to_play(self, cards, valides): # plus tard : la suppr
-        """
-        peut etre pour bind seulement les cartes valides
-        - activer les cartes disponibles
-        """
-        self.display_my_hand(cards, valides)
 
-    def display_new_to_middle(self, j, card): # dès que quelqu'un joue
-        """
-        appeler dès que quelqu'un à joué
-        - afficher la carte du middle
-        j : entier entre 0 et 3
-        card : la carte qui est jouée
-        """
+    def hide_invalides(self, invalides): # invalides: liste de cartes (tuples)
+        for card in self.my_main.keys():
+            if card in invalides:
+                lbl = self.my_main[card]
+                lbl.config(state="disabled")
+
+
+    def activate_my_hand(self, valides):
+        inv = []
+        for card in self.my_main.keys():
+            if card in valides:
+                def helper(j):
+                    return lambda event: self.on_card_click(j)
+                lbl = self.my_main[card]
+                lbl.bind("<Button-1>", helper(card))
+            else:
+                inv.append(card)
+        self.hide_invalides(inv)
+
+    def clear_my_main(self):
+        # print("Begin to destroy", self.my_main.keys())
+        my_local_main = list(self.my_main.values())
+        # print()
+        for clbl in my_local_main:
+            clbl.destroy()
+            # print("abzzzzzzzzzzzzz")
+        # print("End of destroy", self.my_main.values())
+        self.my_main = {}
+
+    def set_atout(self, a):
+        self.at_label.config(text=SUITS[a])
+
+        
+
+    def waiter(self):
+        self.main_frame.bind("<Button-1>", self.waiter_click)
+
+    
+    def done_waiting(self):
+        self.main_frame.unbind("<Button-1>")
+
+
+    
+    def add_to_mid(self, j, card):
         lbl = self.render_carte(card, MID_POS[j][0], MID_POS[j][1])
-        # assert(self.middle[j]==None)
-        # print(self.middle[j])
         self.middle[j] = lbl
 
 
-    def display_end_of_pli(self):
-        """
-        à appeler à la fin du pli : 
-        - effacer le middle
-        - self.middle = [None]*4
-
-        """
-        self.main_frame.bind("<Button-1>", self.ready_for_next_pli_click)
-
-    def display_beg_of_pli(self):
-        self.main_frame.unbind("<Button-1>")
+    def clear_mid(self):
         for lbl in self.middle:
-            lbl.destroy()
-        self.clear_middle()
+            try:
+                lbl.destroy()
+            except:
+                pass
+                # print("================bipboup pouquoi clear_mid alors que toutes les cartes n'ont pas été jouées ? =")
+        self.middle = [None]*4
+
+
+    
+    def display_single(self, card):
+        lbl = self.render_carte(card, SINGLE_X, SINGLE_Y)
+        self.single = lbl
+
+    def clear_single(self):
+        self.single.destroy()
+        self.single = None 
+
+    
+    def get_but(self, txt):
+        lbl = tk.Label(self.main_frame, text=txt) # bg, etc...
+        return lbl
+
+    def display_but_une(self, n_suit): # n_suit \in {0, 1, 2, 3}
+
+        lbl = self.get_but("Une")
+        lbl.place(x=SINGLE_X-CARD_WIDTH, y=SINGLE_Y)
+        lbl.bind("<Button-1>", lambda event: self.at_click(4))
+        self.at_butts.append(lbl)
+
+        lal = self.get_but(SUITS[n_suit])
+        lal.place(x=SINGLE_X+CARD_WIDTH, y=SINGLE_Y)
+        lal.bind("<Button-1>", lambda event: self.at_click(n_suit))
+        self.at_butts.append(lal)
+
+
+    def display_but_deux(self, n_suits):
+
+        lbl = self.get_but("Deux")
+        lbl.place(x=SINGLE_X-2*CARD_WIDTH, y=SINGLE_Y)
+        lbl.bind("<Button-1>", lambda event: self.at_click(4))
+        self.at_butts.append(lbl)
+
+        q = n_suits[0]
+        lbl = self.get_but(SUITS[q])
+        lbl.place(x=SINGLE_X-CARD_WIDTH, y=SINGLE_Y)
+        lbl.bind("<Button-1>", lambda event: self.at_click(q))
+        self.at_butts.append(lbl)
+
+        r = n_suits[1]
+        lbl = self.get_but(SUITS[r])
+        lbl.place(x=SINGLE_X+CARD_WIDTH, y=SINGLE_Y)
+        lbl.bind("<Button-1>", lambda event: self.at_click(r))
+        self.at_butts.append(lbl)
+
+        s = n_suits[2]
+        lbl = self.get_but(SUITS[s])
+        lbl.place(x=SINGLE_X+2*CARD_WIDTH, y=SINGLE_Y)
+        lbl.bind("<Button-1>", lambda event: self.at_click(s))
+        self.at_butts.append(lbl)
+
+
+    def clear_at_butts(self):
+        for but in self.at_butts:
+            but.destroy()
+
+        self.at_butts = []
+        
+        
+    # FOR ACTIONS
 
 
 
-    def display_end_of_jeu(self):
-        """
-        à appeler à la fin du jeu
-        - 
-        """
-        print("la fin du jeu")
+
+
+
+
+
+
+
+
+
+
+
+    

@@ -27,10 +27,3 @@ class Joueur:
 
     def init_main(self, cards):
         self.main = cards
-
-    def bot_play(self, jouables):
-        assert(self.is_bot)
-
-        c = choice(jouables)
-
-        # envoyer la carte

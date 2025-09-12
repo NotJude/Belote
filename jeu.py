@@ -8,17 +8,8 @@ from display import BeloteWindow
 
 
 class Partie:
-    """
-    Créer une Partie (__init__)
-    Créer les 4 joueurs (args ?)
-    Lancer un Jeu
-     - self.jeu_courant
-    """
 
     def __init__(self):
-        """
-        Initialiser les équipes, joueurs, jeu_courant, init_jeu
-        """
         # display
         self.win = BeloteWindow()
 
@@ -41,24 +32,22 @@ class Partie:
         self.deck = BeloteDeck()
 
         # jeu
-        self.jeu_courant = None
+        # self.jeu_courant = Jeu(self, 3)
+        self.jeu_courant= None
+
+    def init_jeu(self):
+        self.jeu_courant = Jeu(self, 3)
     
 
-        
-    def init_jeu(self):
-        distribution = self.deck.distribue()
-        for i,j in enumerate(self.joueurs):
-            j.main = distribution[i]
-        self.jeu_courant = Jeu(self, 3)
-
     def jeu_fini(self):
-        w = self.win
-        w.display_end_of_jeu() 
+        pass
+        
+
+
+
+
 
 class Jeu:
-    """
-    Lancer un Pli
-    """
     def __init__(self, partie, dealer):
         self.partie = partie
         self.dealer = dealer
@@ -67,13 +56,11 @@ class Jeu:
         self.n_pli = 0
         self.atout = None
 
-        self.init_atout()
-        self.init_pli()
+        self.joueur_courant = (self.dealer + 1)%4
+        
+        self.tour_atout = 1
 
-    def init_pli(self):
-        jc = (self.dealer + 1)%4 # joueur qui commence se trouve à la droite de dealer
-        self.n_pli += 1
-        self.pli_courant = Pli(self, jc)
+        self.initialiser()
 
     def pli_fini(self):
         if self.n_pli == 8:
@@ -82,16 +69,113 @@ class Jeu:
         else:
             # plus tard : remballer les cartes dans l'ordre
             w = self.partie.win
-            w.display_end_of_pli()
+            w.waiter()
+            # w.clear_mid()
+
+
+    def get_stjc(self):
+        return self.partie.joueurs[self.joueur_courant]
 
     def init_next_pli(self):
-            w = self.partie.win
-            w.display_beg_of_pli()
+        w = self.partie.win
+        # w.display_beg_of_pli()
+        w.clear_mid()
+        w.done_waiting()
+        if self.n_pli==0:
+            g = (self.dealer + 1)%4
+        else:
             g = self.pli_courant.joueur_leader
-            self.pli_courant = Pli(self, g)
+        self.nouv_pli(g)
 
-    def init_atout(self):
-        self.atout = 0 # trèfle pour l'instant
+    
+    def initialiser(self):
+        part = self.partie
+        deck = part.deck
+        joueurs = part.joueurs
+        deez = deck.distribue_cinq_each()
+        w = self.partie.win
+
+        for j in range(4):
+            joueurs[j].main = deez[j]
+
+        self.single = deck.single()
+
+        # affichage
+        w.display_single(self.single)
+        # w.clear_my_main()
+        w.display_my_hand(joueurs[0].main)
+
+        self.suiv_at()
+
+    
+    def suiv_at(self):
+        stjc = self.get_stjc()
+        if stjc.is_bot:
+            self.at_def(4)
+        elif self.joueur_courant == 0:
+            # affichage
+            coul_single = self.single[0]
+            w = self.partie.win
+            if self.tour_atout == 1:
+                w.display_but_une(coul_single)
+            elif self.tour_atout == 2:
+                l = list(range(4))
+                l.remove(coul_single)
+                w.display_but_deux(l)
+            else:
+                print("erreur de tour", self.tour_atout)
+                raise ValueError
+
+        
+
+
+    def at_def(self, a): # 4 : passer, 0 : clubs
+        """
+        si self.jc = self.dealer && a==4: s.tour = 2 & suiv_at()
+        """
+        stjc = self.get_stjc()
+        w = self.partie.win
+
+        if self.joueur_courant == 0: # si c'est nous
+            w.clear_at_butts()
+
+        if a == 4: # si on a passé
+            if self.joueur_courant != self.dealer: # on a fait un tour entier
+                self.joueur_courant = (self.joueur_courant + 1)%4
+                self.suiv_at()
+            else:  
+                if self.tour_atout == 1:
+                    self.tour_atout = 2
+                    self.joueur_courant = (self.joueur_courant + 1)%4
+                    self.suiv_at()
+                else:
+                    #print("self.tour_atout (normalemnt 2) : ", self.tour_atout)
+                    w.clear_my_main()
+                    w.clear_single()
+                    # w.clear_at_butts()
+                    self.partie.jeu_fini()                
+
+
+        else: # start_game
+            self.atout = a
+            w.set_atout(a)
+            stjc.main.append(self.single)
+            t = self.partie.deck.distribue_le_reste(self.joueur_courant)
+            for i, joueur in enumerate(self.partie.joueurs):
+                for c in t[i]:
+                    joueur.main.append(c)
+            w.clear_single()
+            w.clear_my_main()
+            w.waiter()
+
+        
+
+
+    def nouv_pli(self, g):
+        # w = self.partie.win
+        self.n_pli += 1
+        self.pli_courant = Pli(self, g)
+        
 
 
 
@@ -108,6 +192,12 @@ class Pli:
         self.jeu = jeu
         self.tapis = []
 
+        w = self.jeu.partie.win
+        st_nous = self.jeu.partie.joueurs[0]
+        
+        w.clear_my_main()
+        w.display_my_hand(st_nous.main)
+        w.done_waiting()
         self.next_()
 
     def send_card_to_play(self, j, card): ## pb : qui appele cette méthode
@@ -137,19 +227,23 @@ class Pli:
 
         # nouvelle carte sur la table
         self.tapis.append(card)
-        w.display_new_to_middle(self.joueur_courant, card)
+        w.add_to_mid(self.joueur_courant, card)
 
         # mettre à jour la main et si besoin, afficher notre nouvelle main
         st_joueur_courant = self.get_stjc()
         st_joueur_courant.main.remove(card)
         if self.joueur_courant == 0: # plus tard : réfléchir
+            w.clear_my_main()
+            # w.waiter()
             w.display_my_hand(st_joueur_courant.main) # affiche la nouvelle main en désactivant les cartes
-
-
 
         # la suite du pli
         assert(0<n and n<=4)
         if n == 4:
+            b = self.compare_bis(self.card_leader, card)
+            if not b:
+                self.card_leader = card
+                self.joueur_leader = self.joueur_courant
             self.jeu.pli_fini()
 
         else:
@@ -168,6 +262,7 @@ class Pli:
 
     def next_(self):
         # regarder si le jc (le nouveau joueur courant) est un nobod, si oui appeler bot_play (fonction de ua ou méthode de joueur idk)
+        
         st_jc = self.get_stjc()
         valides = self.cartes_jouables()
         if st_jc.is_bot:
@@ -176,10 +271,11 @@ class Pli:
             self.send_card_to_play(self.joueur_courant, c)
         else: # self.joueur_courant is me -> "affichage"
             w = self.jeu.partie.win
-            stjc = self.get_stjc()
-            w.abt_to_play(stjc.main, valides) # active les bonnnes cartes
+            w.activate_my_hand(valides)
+            # w.abt_to_play(st_jc.main, valides) # active les bonnnes cartes
 
     def est_jouable(self, card):
+        
         return card in self.cartes_jouables()
 
     def cartes_jouables(self): # plus tard : à vérifier...
@@ -190,15 +286,25 @@ class Pli:
         else:
             nos_atouts, atouts_sup = self.filtrer_couleur(main, self.jeu.atout)
             if self.couleur_demandee==self.jeu.atout:
-
-                if len(atouts_sup) > 0: return atouts_sup
-                elif len(nos_atouts) > 0: return nos_atouts
-                else: return main
+                if len(atouts_sup) > 0: 
+                    return atouts_sup
+                elif len(nos_atouts) > 0:
+                    return nos_atouts
+                else:
+                    return main
             else:
                 nos_coul, _ = self.filtrer_couleur(main, self.couleur_demandee)
-                if len(nos_coul)>0: return nos_coul
-                elif self.joueur_leader%2 != self.joueur_courant%2 and len(nos_atouts)>0: return nos_atouts
-                else: return main
+                if len(nos_coul)>0:
+                    return nos_coul
+                elif self.joueur_leader%2 != self.joueur_courant%2:
+                    if len(atouts_sup)>0:
+                        return atouts_sup
+                    elif len(nos_atouts)>0:
+                        return nos_atouts
+                    else:
+                        return main
+                else:
+                    return main
 
     def compare_bis(self, maitre, candidat): # renvoie True si Émillien conserve son titre
         at = self.jeu.atout
