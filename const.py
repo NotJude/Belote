@@ -1,4 +1,5 @@
 
+import tkinter.font
 
 #deck      0          1          2         3
 SUITS = ['clubs', 'diamonds', 'spades', 'hearts']
@@ -42,6 +43,7 @@ ORDRE_SANS = sorted(VALEURS_SANS.keys(), key=lambda x: VALEURS_SANS[x])
 
 #couleurs
 BG = "green"
+GOLD = "#ffd700"
 
 #dimensions
 N = 1
@@ -50,9 +52,12 @@ def ada(n):
     return round(n*N)
 
 
+
 WIN_WIDTH = ada(960)
 WIN_HEIGHT = ada(540)
 WIN_DIM = (WIN_WIDTH, WIN_HEIGHT)
+
+BORDER = 2
 
 CARD_WIDTH = ada(98)
 CARD_HEIGHT = ada(142)
