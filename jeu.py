@@ -3,7 +3,7 @@ from random import choice
 
 from joueurs import Ekip, Joueur
 from deck import BeloteDeck
-from const import ORDRE_ATOUT, ORDRE_SANS
+from const import ORDRE_ATOUT, ORDRE_SANS, VALEURS_ATOUT, VALEURS_SANS
 from display import BeloteWindow
 
 
@@ -49,6 +49,8 @@ class Jeu:
         self.partie = partie
         self.dealer = dealer
         self.w = self.partie.win
+        self.joueurs = self.partie.joueurs
+        self.equipes = self.partie.equipes
 
         self.pli_courant = None
         self.n_pli = 0
@@ -57,18 +59,33 @@ class Jeu:
         self.jc = (self.dealer + 1)%4
         self.tour_atout = 1
 
+        for equipe in self.equipes:
+            equipe.reset_points_current_game()
+
         self.jeu_initialiser()
 
 
     def get_stjc(self):
-        return self.partie.joueurs[self.jc]
-
+        return self.joueurs[self.jc]
+    
+    def get_equipe(self, j):
+        joueur = self.joueurs[j]
+        return joueur.n_equipe
+    
+    def act_puntos(self, j, tot):
+        e = self.get_equipe(j)
+        equipe = self.equipes[e]
+        all = equipe.ajouter_puntos(tot)
+        self.w.actualiser_puntos_tg(e, all)
+        
 
     def jeu_initialiser(self): # pas une vraie fonction
         part = self.partie
         deck = part.deck
-        joueurs = part.joueurs
+        joueurs = self.joueurs
         deez = deck.distribue_cinq_each()
+
+        self.w.clear_puntos_tg()
 
         for j in range(4):
             joueurs[j].main = deez[j]
@@ -123,7 +140,7 @@ class Jeu:
             self.atout = a
             stjc.main.append(self.single)
             t = self.partie.deck.distribue_le_reste(self.jc)
-            for i, joueur in enumerate(self.partie.joueurs):
+            for i, joueur in enumerate(self.joueurs):
                 for c in t[i]:
                     joueur.main.append(c)
 
@@ -131,17 +148,26 @@ class Jeu:
             self.w.set_atout(a)
             self.w.clear_single()
             self.w.clear_ma_main()
-            st_nous = self.partie.joueurs[0]
+            st_nous = self.joueurs[0]
             self.w.display_ma_main(st_nous.main, a)
             self.w.waiter()
+
+    def compter_puntos(self, tbl):
+        s = 0
+        for card in tbl:
+            if card[0] == self.atout: s += VALEURS_ATOUT[card[1]]
+            else: s += VALEURS_SANS[card[1]]
+        return s
             
 
     def pli_fini(self):
+        pli = self.pli_courant
+
         self.w.clear_mid()
         self.w.done_waiting()
-        # plus tard : remballer les cartes dans l'ordre
 
         if self.n_pli == 8: # le jeu est fini
+            self.act_puntos(self.pli_courant.jl, 10) # 10 de der
             self.partie.jeu_fini()
 
         else: # commencer le pli suivant
@@ -149,7 +175,7 @@ class Jeu:
             if self.n_pli==0:
                 g = (self.dealer + 1)%4
             else:
-                g = self.pli_courant.jl
+                g = pli.jl
             self.n_pli += 1
             self.pli_courant = Pli(self, g)
 
@@ -185,7 +211,7 @@ class Pli:
     def jouer_carte(self, card):
         # nouvelle carte sur la table
         self.tapis.append(card)
-        self.w.add_to_mid(self.jc, card)
+        self.w.add_to_mid(self.jc, card, self.atout)
 
         # mettre à jour la main et si besoin, afficher notre nouvelle main
         st_joueur_courant = self.get_stjc()
@@ -202,6 +228,11 @@ class Pli:
                 self.card_leader = card
                 self.jl = self.jc
             if n==4:
+                deck = self.jeu.partie.deck
+                eg = self.jeu.get_equipe(self.jl) # equipe_gagnante
+                self.jeu.act_puntos(self.jl, self.jeu.compter_puntos(self.tapis))
+                # remballer les cartes
+                deck.remballe(eg, self.tapis)
                 self.w.waiter()
         if 1<=n<4:
             if n==1:
