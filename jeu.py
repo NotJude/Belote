@@ -143,8 +143,10 @@ class Jeu:
             for i, joueur in enumerate(self.joueurs):
                 for c in t[i]:
                     joueur.main.append(c)
+                joueur.trie_cartes(a)
 
-            # plus tard : trier les cartes
+            
+
             self.w.set_atout(a)
             self.w.clear_single()
             self.w.clear_ma_main()

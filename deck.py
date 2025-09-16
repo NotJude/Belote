@@ -48,7 +48,6 @@ class BeloteDeck:
             else:
                 t.append(cd[c:c+3])
                 c = c + 3
-        print("il reste (normalemnt 0) cartes :", 32-c)
         return t
     
     def single(self):

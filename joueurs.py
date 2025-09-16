@@ -1,5 +1,5 @@
 
-from random import choice
+from const import VALEURS_ATOUT, VALEURS_SANS
 
 class Ekip:
     def __init__(self, n):
@@ -31,7 +31,24 @@ class Joueur:
         # Propre à un jeu
         self.main = None
 
-        
 
-    def init_main(self, cards):
-        self.main = cards
+
+    def trie_cartes(self, at):
+        trker = [[], [], [], []]
+        
+        for card in self.main:
+            trker[card[0]].append(card)
+
+        new = []
+        for i in range(4):
+            n = (at+i)%4
+            t = trker[n]
+            if i == 0: v = VALEURS_ATOUT
+            else: v = VALEURS_SANS
+            key = lambda e: v[e[1]]
+            t.sort(key=key, reverse=True)
+            new += t
+
+
+        self.main = new
+    
