@@ -1,0 +1,2 @@
+Network :
+    -> Game can send anything (>2048)

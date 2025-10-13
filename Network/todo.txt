@@ -1,0 +1,5 @@
+-> pbs entre send et recieve : si client attend de recieve avant que serveur ait envoyé et ben il ne va jamais recevoir meme quand server aura envoyé
+-> window ne s'affiche pas cote client
+
+-> BELOTE !
+-> appels circulaires entre mg.recieve et jeu/pli (les mettre au niveau de jeu plutot qu'au niveau de manageGame)

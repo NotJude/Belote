@@ -1,0 +1,17 @@
+a -> clear_puntos_tg
+b -> display_single
+c -> display_ma_main
+d -> display_but_une
+e -> clear_ma_main
+f -> display_but_deux
+g -> clear_at_butts
+h -> clear_single
+i -> set_atout
+j -> actualiser_puntos_tg
+k -> clear_mid
+l -> add_to_mid
+m -> activate_ma_main
+
+A -> self.pli_courant.jouer_carte
+B -> self.jeu_courant.tr_req_at
+C -> 
