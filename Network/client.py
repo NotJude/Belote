@@ -1,5 +1,0 @@
-
-"""
-FOR RESEARCH PURPOSE ONLY
-"""
-
