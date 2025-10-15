@@ -20,7 +20,7 @@ from display import BeloteWindow
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = ""
+        self.server = "172.234.175.153"
         self.port = 5555
         self.addr = (self.server, self.port)
         
@@ -146,3 +146,4 @@ if __name__ == '__main__':
     # n.recieve()
 
     n.w.root.mainloop()
+
