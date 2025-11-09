@@ -129,7 +129,7 @@ class ManageGame:
 
 class Server:
     def __init__(self):
-        self.server = "192.168.0.26" # "10.28.26.228"
+        self.server = ""
         self.port = 5555
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -205,4 +205,5 @@ class Server:
 
 
 if __name__ == '__main__':
+
     s = Server()
