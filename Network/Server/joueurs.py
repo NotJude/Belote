@@ -21,8 +21,9 @@ class Ekip:
 
 
 class Joueur:
-    def __init__(self, n, n_equipe, is_nobod):
+    def __init__(self, n, n_equipe, is_nobod, pseudo):
         self.n = n # identifiant unique
+        self.pseudo = pseudo
         self.n_equipe = n_equipe 
         self.is_bot = is_nobod
         """éventuellement rajouter un attribu 'équipe'"""

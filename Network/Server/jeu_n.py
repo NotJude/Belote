@@ -2,14 +2,9 @@
 from random import choice
 
 from deck import BeloteDeck
-from const_srv import ORDRE_ATOUT, ORDRE_SANS, VALEURS_ATOUT, VALEURS_SANS, card_to_str, cardz_to_str
-
+from const_srv import ORDRE_ATOUT, ORDRE_SANS, VALEURS_ATOUT, VALEURS_SANS
 
 """
-waiter ????
-"""
-
-
 def seri_dmm(main, coul_mid):
     return "c" + cardz_to_str(main) + "/" + str(coul_mid)
 
@@ -25,14 +20,10 @@ def seri_dbd(l_col):
 # innutile (for now)
 def seri_apt(l_scr):
     return helper_seri(l_scr, )
-    
+""" 
 
 class Partie:
-
     def __init__(self, mg):
-        # display
-        # self.win = BeloteWindow() # CEST CIAO
-
         self.mg = mg
         self.joueurs = mg.joueurs
         self.equipes = mg.equipes
@@ -58,7 +49,7 @@ class Jeu:
     def __init__(self, partie, dealer):
         self.partie = partie
         self.dealer = dealer
-        # self.w = self.partie.win
+        
         self.joueurs = self.partie.joueurs
         self.equipes = self.partie.equipes
 
@@ -69,15 +60,21 @@ class Jeu:
         self.jc = (self.dealer + 1)%4
         self.tour_atout = 1
 
-        self.sendf = self.partie.mg.send
-        self.recievf = self.partie.mg.recieve
+        self.apply = self.partie.mg.applyer
+        self.apply_all = self.partie.mg.apply_all
 
+    
         for equipe in self.equipes:
             equipe.reset_points_current_game()
 
         self.partie.mg.set_jeu_courant(self)
 
         self.jeu_initialiser()
+
+    def recv(self, j=None):
+        if j==None:
+            j = self.jc
+        self.partie.mg.recv_n_redirect(j)
 
 
     def get_stjc(self):
@@ -92,8 +89,7 @@ class Jeu:
         equipe = self.equipes[e]
         all = equipe.ajouter_puntos(tot)
 
-        s = "j/" + str(e) + "/" + str(all)
-        self.send_all(s)
+        self.apply_all("act_pun_tg", [e, all])
         # self.w.actualiser_puntos_tg(e, all)
         
 
@@ -110,23 +106,18 @@ class Jeu:
 
         # affichage
         # self.w.clear_puntos_tg()
-        self.send_all("a")
-        self.send_all("b/"+card_to_str(self.single))
+        self.apply_all("cpuntos_tg")
+        self.apply_all("dsp_single", cs=[self.single])
         
-        self.send_dmm()
+        self.apply_dmm(self.single[0])
             
         # self.w.display_ma_main(joueurs[0].main, self.single[0]) # affichage en jaune si c'est de l'atout potentiel (de la couleur de single)
         self.suiv_at()
 
 
-    def send_all(self, c): # on veut envoyer la meme chose aux 4 joueurs
+    def apply_dmm(self, a):
         for j in range(4):
-            self.sendf(c, j)
-
-    def send_dmm(self):
-        for i in range(4):
-            s = seri_dmm(self.joueurs[i].main, self.single[0])
-            self.sendf(s, i)
+            self.apply("dsp_main", j, [a], self.joueurs[j].main)
 
 
     def suiv_at(self):
@@ -135,34 +126,31 @@ class Jeu:
         if stjc.is_bot:
             self.tr_req_at(4)
 
-        else: # on n'a pas affaire à un nobod
-            # if self.jc == 0:
-            # affichage
+        else: 
+            
             coul_single = self.single[0]
             if self.tour_atout == 1:
                 # self.w.display_but_une(coul_single)
-                self.sendf("d/"+str(coul_single), self.jc)
-                self.recievf(self.jc) # ça part en traitement dans manageGame
+                self.apply("dspbut_une", self.jc, [coul_single])
+                self.recv()
 
             else: 
                 l = list(range(4))
                 l.remove(coul_single)
-                self.sendf("e", self.jc)
+
+                self.apply("clear_main", self.jc)
                 # self.w.clear_ma_main()
-                s = seri_dmm(self.joueurs[self.jc].main, 5)
-                self.sendf(s, self.jc)
+                self.apply("dsp_main", self.jc, [5], self.joueurs[self.jc].main)
                 # self.display_ma_main(self.joueurs[0].main, 5) # 5 : pas de signification
-                s = seri_dbd(l)
-                self.sendf(s, self.jc)
+                self.apply("dspbutdeux", self.jc, l)
                 # self.w.display_but_deux(l)
-                self.recievf(self.jc)
+                self.recv()
 
             
 
     def tr_req_at(self, a): # traite requete atout
 
-        s = "g"
-        self.sendf(s, self.jc)
+        self.apply("clr_atbuts", self.jc)
         # self.w.clear_at_butts()
 
         if a == 4: # si on a passé
@@ -174,9 +162,9 @@ class Jeu:
                     self.tour_atout = 2
                     self.suiv_at()
                 else:
-                    self.send_all("e")
+                    self.apply_all("clear_main")
                     # self.w.clear_ma_main()
-                    self.send_all("h")
+                    self.apply_all("clr_single")
                     # self.w.clear_single()
                     self.partie.jeu_fini()
 
@@ -190,16 +178,14 @@ class Jeu:
                     joueur.main.append(c)
                 joueur.trie_cartes(a)
 
-            s = "i/" + str(a)
-            self.send_all(s)
+            self.apply_all("set_atout", [a])
             # self.w.set_atout(a)
-            self.send_all("h")
+            self.apply_all("clr_single")
             # self.w.clear_single()
 
-            self.send_all("e")
-            for i in range(4):
-                s = seri_dmm(self.joueurs[i].main, self.atout)
-                self.sendf(s, i)
+            self.apply_all("clear_main")
+
+            self.apply_dmm(self.atout)
             self.pli_fini((self.dealer + 1)%4)
             
             # self.w.clear_ma_main() ; self.w.display_ma_main(st_nous.main, a)
@@ -216,7 +202,7 @@ class Jeu:
 
     def pli_fini(self, jl):
 
-        self.send_all("k")
+        self.apply_all("clear_mid")
         # self.w.clear_mid()
         # self.w.done_waiting()
 
@@ -250,8 +236,8 @@ class Pli:
         self.jeu = jeu
         # self.w = self.jeu.w
 
-        self.send_all = self.jeu.send_all
-        self.sendf = self.jeu.sendf
+        self.apply_all = self.jeu.apply_all
+        self.apply = self.jeu.apply
 
         self.jeu.partie.mg.set_pli_courant(self)
 
@@ -269,17 +255,17 @@ class Pli:
     def jouer_carte(self, card):
         # nouvelle carte sur la table
         self.tapis.append(card)
-        s = "l/" + card_to_str(card) + "/" + str(self.atout) + "/" + str(self.jc)
-        self.send_all(s)
+        # s = "l/" + card_to_str(card) + "/" + str(self.atout) + "/" + str(self.jc)
+        # self.send_all(s)
+        self.apply_all("add_to_mid", [self.jc, self.atout], [card])
         # self.w.add_to_mid(self.jc, card, self.atout)
 
         # mettre à jour la main et si besoin, afficher notre nouvelle main
         st_joueur_courant = self.get_stjc()
         st_joueur_courant.main.remove(card)
 
-        self.sendf("e", self.jc)
-        s = seri_dmm(st_joueur_courant.main, self.atout)
-        self.sendf(s, self.jc)
+        self.apply("clear_main", self.jc)
+        self.apply("dsp_main", self.jc, [self.atout], st_joueur_courant.main)
 
         # if self.jc == 0: # plus tard : réfléchir
         #     self.w.clear_ma_main()
@@ -320,9 +306,8 @@ class Pli:
 
         else:
             # self.w.activate_ma_main(valides)
-            s = "m" + cardz_to_str(valides)
-            self.sendf(s, self.jc)
-            self.jeu.recievf(self.jc)
+            self.apply("act_main", self.jc, cs=valides)
+            self.jeu.recv(self.jc)
 
 
     def cartes_jouables(self): 
